@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#120a16">
+<title>萌貓對決：B型小惡魔貓 大戰 AB型櫻花貓 ｜ 60fps 網球對戰模組</title>
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #120a16;
+  --panel: rgba(28, 16, 36, 0.9);
+  --devil-purple: #a855f7;
+  --devil-glow: #c084fc;
+  --sakura-pink: #ec4899;
+  --sakura-glow: #f472b6;
+  --text: #ffffff;
+  --muted: #a8a29e;
+}
+
+* { box-sizing: border-box; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+
+body {
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  background: radial-gradient(circle at 50% 20%, #281236 0%, var(--bg) 70%);
+  color: var(--text);
+  font-family: system-ui, -apple-system, sans-serif;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: background 0.6s ease;
+}
+
+.app {
+  flex: 1;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: env(safe-area-inset-top, 10px) 14px env(safe-area-inset-bottom, 14px) 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  z-index: 2;
+}
+
+header { text-align: center; padding: 2px 0; }
+.eyebrow { color: var(--sakura-glow); font-size: 10px; font-weight: 900; letter-spacing: 0.3em; text-transform: uppercase; text-shadow: 0 0 10px rgba(244,114,182,0.5); }
+h1 { margin: 2px 0; font-size: 20px; background: linear-gradient(90deg, var(--devil-glow), #ffffff, var(--sakura-pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5)); }
+
+.scores { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; margin: 4px 0; }
+.side { padding: 8px 10px; border-radius: 14px; background: var(--panel); border: 1.5px solid rgba(168,85,247,0.4); box-shadow: 0 4px 20px rgba(168,85,247,0.15); transition: all 0.3s ease; }
+.side.sakura-side { text-align: right; border-color: rgba(236,72,153,0.4); box-shadow: 0 4px 20px rgba(236,72,153,0.15); }
+.side-header { font-size: 10px; font-weight: 900; display: flex; gap: 4px; align-items: center; }
+.sakura-side .side-header { justify-content: flex-end; }
+.emotion-tag { font-size: 9px; padding: 2px 6px; border-radius: 8px; background: rgba(255,255,255,0.08); margin-top: 3px; display: inline-block; font-weight: 800; }
+.percent { font-size: 26px; font-weight: 1000; line-height: 1.1; font-family: monospace; }
+.devil-side .percent { color: var(--devil-glow); text-shadow: 0 0 12px rgba(192,132,252,0.5); }
+.sakura-side .percent { color: var(--sakura-pink); text-shadow: 0 0 12px rgba(236,72,153,0.5); }
+
+.vs-badge { font-size: 11px; font-weight: 900; color: #f472b6; background: rgba(0,0,0,0.7); width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 1.5px solid #f472b6; box-shadow: 0 0 12px rgba(244,114,182,0.4); }
+
+.arena-container { border: 2px solid rgba(236, 72, 153, 0.3); border-radius: 18px; background: rgba(16, 10, 22, 0.95); position: relative; overflow: hidden; margin: 4px 0; box-shadow: inset 0 0 30px rgba(0,0,0,0.9); }
+canvas { display: block; width: 100%; height: 145px; }
+.directions { display: flex; justify-content: space-between; padding: 0 6px; color: var(--muted); font-size: 9px; font-weight: 800; }
+
+.status { text-align: center; min-height: 42px; padding: 8px 10px; border: 1.5px solid rgba(168,85,247,0.4); border-radius: 12px; background: linear-gradient(135deg, rgba(35,16,48,0.9), rgba(20,10,28,0.9)); color: #fbcfe8; font-size: 12px; font-weight: 900; display: flex; align-items: center; justify-content: center; margin: 4px 0; box-shadow: 0 0 15px rgba(168,85,247,0.15); }
+
+.control-zone { display: flex; flex-direction: column; gap: 8px; }
+.moves { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.move { height: 68px; background: linear-gradient(145deg, #221230, #12091c); border: 1.5px solid rgba(168, 85, 247, 0.25); border-radius: 14px; color: var(--text); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; transition: transform 0.1s; }
+.move .glyph { font-size: 22px; }
+.move .label { font-size: 11px; font-weight: 900; color: #fbcfe8; }
+.move.active { border-color: var(--sakura-pink); background: linear-gradient(145deg, #3d144e, #1f0a28); box-shadow: 0 0 18px rgba(236, 72, 153, 0.4); transform: translateY(-2px); }
+.move:active { transform: scale(0.95); }
+
+.actions { display: grid; grid-template-columns: 2fr 1fr; gap: 8px; }
+.action { height: 46px; border: 1.5px solid rgba(255,255,255,0.15); border-radius: 12px; background: var(--panel); color: var(--text); font-weight: 900; font-size: 13px; cursor: pointer; }
+.action.primary { background: linear-gradient(135deg, var(--devil-purple), var(--sakura-pink)); color: #fff; border: none; box-shadow: 0 4px 15px rgba(236,72,153,0.3); }
+.action:active { transform: scale(0.97); }
+
+.overlay { position: fixed; inset: 0; z-index: 10; display: none; place-items: center; padding: 20px; background: rgba(18, 10, 22, 0.95); backdrop-filter: blur(12px); }
+.overlay.show { display: grid; }
+.result-card { width: min(380px, 100%); padding: 30px 20px; text-align: center; border: 2px solid var(--sakura-pink); border-radius: 22px; background: linear-gradient(145deg, #251233, #0f0617); box-shadow: 0 0 50px rgba(236,72,153,0.4); }
+</style>
+</head>
+<body>
+
+<main class="app" id="app">
+  <header>
+    <div class="eyebrow">TENNIS CLASH ARENA</div>
+    <h1>B型小惡魔貓 大戰 AB型櫻花貓</h1>
+  </header>
+
+  <section class="scores">
+    <div class="side devil-side">
+      <div class="side-header">😈 B型小惡魔貓 [0.88]</div>
+      <div class="percent" id="devilScore">50%</div>
+      <div class="emotion-tag" id="devilEmotion">💜 隨性魅惑抽球</div>
+    </div>
+    <div class="vs-badge">VS</div>
+    <div class="side sakura-side">
+      <div class="side-header">[0.90] AB型櫻花貓 🌸</div>
+      <div class="percent" id="sakuraScore">50%</div>
+      <div class="emotion-tag" id="sakuraEmotion">🌸 櫻花飄落極致</div>
+    </div>
+  </section>
+
+  <div class="arena-container" id="arena">
+    <canvas id="canvas"></canvas>
+  </div>
+  <div class="directions"><span>◀ 魅惑小惡魔切球</span><span>櫻花美學抽球 ▶</span></div>
+
+  <div class="status" id="status">
+    網球拉鋸展開！B型小惡魔貓 0.88 隨性戰術 vs AB型櫻花貓 0.90 美學打擊！
+  </div>
+
+  <div class="control-zone">
+    <section class="moves">
+      <button class="move active" data-move="topspin"><span class="glyph">🎾</span><span class="label">重擊旋風球</span></button>
+      <button class="move" data-move="slice"><span class="glyph">✨</span><span class="label">魅惑切球</span></button>
+      <button class="move" data-move="drop"><span class="glyph">🌸</span><span class="label">櫻花網前吊球</span></button>
+    </section>
+
+    <div class="actions">
+      <button class="action primary" id="fight">💥 揮拍！球場拉鋸擊球！</button>
+      <button class="action" id="reset">↻ 重置</button>
+    </div>
+  </div>
+</main>
+
+<div class="overlay" id="overlay">
+  <div class="result-card">
+    <div style="font-size: 50px;" id="resultEmoji">🏆</div>
+    <h2 id="resultTitle" style="color: var(--sakura-pink);">AB型櫻花貓勝出！</h2>
+    <p id="resultText" style="color: var(--muted); font-size: 13px; line-height: 1.5; margin-bottom: 20px;">「喵～🌸」完美的櫻花飛舞扣殺！AB型的雙重美學稱霸球場！</p>
+    <button class="action primary" id="again" style="width: 100%; height: 48px;">再開一局網球對決 ↻</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  let audioCtx = null;
+  function initAudio() {
+    if (!audioCtx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AC();
+    }
+    if (audioCtx.state === "suspended") audioCtx.resume();
+  }
+
+  // 小惡魔魔幻高音 Pop 音效
+  function playDevilSound(isCrit = false, isUltimate = false) {
+    initAudio();
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = "sawtooth";
+    const baseFreq = isUltimate ? 1100 : (isCrit ? 850 : 650);
+    osc.frequency.setValueAtTime(baseFreq, now);
+    osc.frequency.exponentialRampToValueAtTime(300, now + (isUltimate ? 0.4 : 0.22));
+    gain.gain.setValueAtTime(0.3, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + (isUltimate ? 0.4 : 0.22));
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(now);
+    osc.stop(now + (isUltimate ? 0.4 : 0.22));
+  }
+
+  // 櫻花優雅晶瑩擊球音效
+  function playSakuraSound(isCrit = false, isUltimate = false) {
+    initAudio();
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = "sine";
+    const baseFreq = isUltimate ? 1400 : (isCrit ? 1050 : 880);
+    osc.frequency.setValueAtTime(baseFreq, now);
+    osc.frequency.exponentialRampToValueAtTime(400, now + (isUltimate ? 0.45 : 0.25));
+    gain.gain.setValueAtTime(0.35, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + (isUltimate ? 0.45 : 0.25));
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(now);
+    osc.stop(now + (isUltimate ? 0.45 : 0.25));
+  }
+
+  const $ = id => document.getElementById(id);
+  const canvas = $("canvas");
+  const ctx = canvas.getContext("2d");
+  const buttons = [...document.querySelectorAll(".move")];
+
+  const MOVES = ["topspin", "slice", "drop"];
+  const BEATS = { topspin: "slice", slice: "drop", drop: "topspin" };
+
+  const state = {
+    devil: 50,
+    sakura: 50,
+    selected: "topspin",
+    round: 0,
+    ended: false,
+    ballPos: 0.5,
+    particles: [],
+    flash: 0
+  };
+
+  let W = 400, H = 145, DPR = 1, animId = 0;
+
+  function resizeCanvas() {
+    const rect = canvas.getBoundingClientRect();
+    W = Math.max(100, rect.width);
+    H = Math.max(80, rect.height);
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(W * DPR);
+    canvas.height = Math.round(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+
+  function chooseMove(move) {
+    state.selected = move;
+    buttons.forEach(btn => btn.classList.toggle("active", btn.dataset.move === move));
+  }
+
+  function updateUI() {
+    $("devilScore").textContent = Math.round(state.devil) + "%";
+    $("sakuraScore").textContent = Math.round(state.sakura) + "%";
+
+    $("devilEmotion").textContent = state.devil > 60 ? "😈 惡魔尾巴狂舞" : (state.devil < 30 ? "😿 被櫻花逼近" : "💜 B型隨性魅惑");
+    $("sakuraEmotion").textContent = state.sakura > 60 ? "🌸 櫻花飄落壓制" : "🌸 AB型雙重思考中";
+
+    if (state.devil > 60) {
+      document.body.style.background = "radial-gradient(circle at 20% 30%, #3d144e 0%, #120a16 70%)";
+    } else if (state.sakura > 60) {
+      document.body.style.background = "radial-gradient(circle at 80% 30%, #3e122b 0%, #120a16 70%)";
+    } else {
+      document.body.style.background = "radial-gradient(circle at 50% 20%, #281236 0%, #120a16 70%)";
+    }
+  }
+
+  function spawnParticles(x, y, color, count = 20) {
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 1 + Math.random() * 4;
+      state.particles.push({
+        x, y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 25 + Math.random() * 20,
+        maxLife: 45,
+        size: 2 + Math.random() * 3,
+        color
+      });
+    }
+  }
+
+  function playRound() {
+    if (state.ended) return;
+    state.round++;
+
+    const sakuraMove = MOVES[Math.floor(Math.random() * MOVES.length)];
+    const devilMove = state.selected;
+    const status = $("status");
+
+    const randCrit = Math.random();
+    let critType = "normal";
+    if (randCrit < 0.15) critType = "ultimate";
+    else if (randCrit < 0.45) critType = "critical";
+
+    if (devilMove === sakuraMove) {
+      status.textContent = `第 ${state.round} 回合｜球拍網前對碰！網球在空中持續對擊！`;
+      playDevilSound(false, false);
+      spawnParticles(W * state.ballPos, H / 2, "#ffffff", 15);
+    } else if (BEATS[devilMove] === sakuraMove) {
+      // B型小惡魔貓勝 (0.88 隨性魅惑)
+      let baseGain = 7.5;
+      if (critType === "critical") baseGain = 15.5;
+      if (critType === "ultimate") baseGain = 25.5;
+
+      state.devil = Math.min(100, state.devil + baseGain);
+      state.sakura = 100 - state.devil;
+
+      if (critType === "ultimate") {
+        status.textContent = `😈 第 ${state.round} 回合｜【必殺·小惡魔魅惑死角球】！！0.88 突襲爆發推進 +${baseGain.toFixed(1)}%！`;
+        playDevilSound(true, true);
+      } else if (critType === "critical") {
+        status.textContent = `✨ 第 ${state.round} 回合｜【會心一擊】！紫光弧線精準落點 +${baseGain.toFixed(1)}%！`;
+        playDevilSound(true, false);
+      } else {
+        status.textContent = `第 ${state.round} 回合｜小惡魔貓 0.88 隨性切球！成功推進 +${baseGain.toFixed(1)}%！`;
+        playDevilSound(false, false);
+      }
+      spawnParticles(W * state.ballPos, H / 2, "#c084fc", critType === "ultimate" ? 40 : 20);
+    } else {
+      // AB型櫻花貓勝 (0.90 美學打擊)
+      let baseGain = 8;
+      if (critType === "critical") baseGain = 16.5;
+      if (critType === "ultimate") baseGain = 26.5;
+
+      state.sakura = Math.min(100, state.sakura + baseGain);
+      state.devil = 100 - state.sakura;
+
+      if (critType === "ultimate") {
+        status.textContent = `🌸 第 ${state.round} 回合｜【必殺·櫻花奧義滿天飛舞】！！0.90 完美扣殺 +${baseGain.toFixed(1)}%！`;
+        playSakuraSound(true, true);
+      } else if (critType === "critical") {
+        status.textContent = `✨ 第 ${state.round} 回合｜【美學會心】！粉色櫻花球壓線 +${baseGain.toFixed(1)}%！`;
+        playSakuraSound(true, false);
+      } else {
+        status.textContent = `第 ${state.round} 回合｜櫻花貓 0.90 精密壓制！推進 +${baseGain.toFixed(1)}%！`;
+        playSakuraSound(false, false);
+      }
+      spawnParticles(W * state.ballPos, H / 2, "#ec4899", critType === "ultimate" ? 40 : 20);
+    }
+
+    state.flash = critType === "ultimate" ? 2.5 : 1;
+    updateUI();
+
+    if (state.devil >= 100 || state.sakura >= 100) {
+      finishMatch(state.devil >= 100 ? "devil" : "sakura");
+    }
+  }
+
+  function finishMatch(winner) {
+    state.ended = true;
+    const devilWon = winner === "devil";
+
+    $("resultEmoji").textContent = devilWon ? "🏆😈" : "🏆🌸";
+    $("resultTitle").textContent = devilWon ? "B型小惡魔貓魅惑大勝！" : "AB型櫻花貓完美稱霸！";
+    $("resultTitle").style.color = devilWon ? "var(--devil-glow)" : "var(--sakura-pink)";
+    $("resultText").textContent = devilWon
+      ? "「嘻嘻～😈」靈動隨性的 0.88 小惡魔戰術發威，完美拿下網球大賽冠軍！"
+      : "「喵～🌸」0.90 雙重美學發揮得淋漓盡致，櫻花盛開擊敗對手！";
+
+    $("status").textContent = devilWon ? "【終局】B型小惡魔貓奪得冠軍！" : "【終局】AB型櫻花貓完美勝出！";
+    $("overlay").classList.add("show");
+  }
+
+  function resetGame() {
+    state.devil = 50;
+    state.sakura = 50;
+    state.round = 0;
+    state.ended = false;
+    state.ballPos = 0.5;
+    state.particles = [];
+    state.flash = 0;
+
+    $("status").textContent = "網球拉鋸展開！B型小惡魔貓 0.88 隨性戰術 vs AB型櫻花貓 0.90 美學打擊！";
+    $("overlay").classList.remove("show");
+    chooseMove("topspin");
+    updateUI();
+  }
+
+  function getSPoint(t) {
+    return {
+      x: 20 + t * (W - 40),
+      y: H / 2 + Math.sin(t * Math.PI * 2) * (H * 0.22)
+    };
+  }
+
+  function renderFrame() {
+    ctx.clearRect(0, 0, W, H);
+
+    ctx.beginPath();
+    for (let i = 0; i <= 80; i++) {
+      const t = i / 80;
+      const p = getSPoint(t);
+      if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
+    }
+    ctx.lineCap = "round";
+    ctx.lineWidth = 12;
+    ctx.strokeStyle = "#1b0f24";
+    ctx.stroke();
+
+    const split = state.devil / 100;
+    for (let side = 0; side < 2; side++) {
+      ctx.beginPath();
+      const from = side === 0 ? 0 : split;
+      const to = side === 0 ? split : 1;
+      for (let i = 0; i <= 40; i++) {
+        const t = from + (to - from) * (i / 40);
+        const p = getSPoint(t);
+        if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
+      }
+      ctx.lineWidth = 5;
+      ctx.strokeStyle = side === 0 ? "#c084fc" : "#ec4899";
+      ctx.shadowColor = side === 0 ? "#c084fc" : "#ec4899";
+      ctx.shadowBlur = 10;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = `1000 ${20 + state.devil * 0.3}px sans-serif`;
+    ctx.fillStyle = `rgba(192, 132, 252, ${0.3 + state.devil / 150})`;
+    ctx.fillText("魔", W * 0.18, H * 0.32);
+
+    ctx.font = `1000 ${20 + state.sakura * 0.3}px sans-serif`;
+    ctx.fillStyle = `rgba(236, 72, 153, ${0.3 + state.sakura / 150})`;
+    ctx.fillText("櫻", W * 0.82, H * 0.68);
+
+    const targetBall = 0.12 + (state.devil / 100) * 0.76;
+    state.ballPos += (targetBall - state.ballPos) * 0.15;
+    const pt = getSPoint(state.ballPos);
+
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, 12 + state.flash * 4, 0, Math.PI * 2);
+    ctx.fillStyle = state.devil >= state.sakura ? "#c084fc" : "#ec4899";
+    ctx.fill();
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    state.particles = state.particles.filter(p => p.life > 0);
+    for (const p of state.particles) {
+      ctx.globalAlpha = p.life / p.maxLife;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life--;
+    }
+    ctx.globalAlpha = 1;
+    state.flash *= 0.82;
+
+    animId = requestAnimationFrame(renderFrame);
+  }
+
+  buttons.forEach(btn => btn.addEventListener("click", () => chooseMove(btn.dataset.move)));
+  $("fight").addEventListener("click", playRound);
+  $("reset").addEventListener("click", resetGame);
+  $("again").addEventListener("click", resetGame);
+
+  window.addEventListener("resize", resizeCanvas, { passive: true });
+  resizeCanvas();
+  updateUI();
+  if (!animId) animId = requestAnimationFrame(renderFrame);
+})();
+</script>
+</body>
+</html>
