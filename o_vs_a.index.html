@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0a0f12">
+<title>網球模式：O型恐龍貓 vs A型魔法學院萌貓娘</title>
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #070a0d;
+  --panel: rgba(18, 26, 32, 0.92);
+  --dino-green: #10b981;
+  --dino-gold: #f59e0b;
+  --magic-pink: #ec4899;
+  --magic-purple: #a855f7;
+  --court-line: rgba(255, 255, 255, 0.25);
+  --text: #f8fafc;
+  --muted: #94a3b8;
+}
+
+* {
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+body {
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  background: radial-gradient(circle at 50% 20%, #0f1d1a 0%, var(--bg) 75%);
+  color: var(--text);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: background 0.6s ease;
+}
+
+.app {
+  flex: 1;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: env(safe-area-inset-top, 10px) 14px env(safe-area-inset-bottom, 14px) 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  z-index: 2;
+}
+
+header {
+  text-align: center;
+  padding: 2px 0;
+}
+
+.eyebrow {
+  color: var(--dino-gold);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+}
+
+h1 {
+  margin: 2px 0;
+  font-size: 20px;
+  background: linear-gradient(90deg, var(--dino-green), #ffffff, var(--magic-pink));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.6));
+}
+
+.scores {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 8px;
+  align-items: center;
+  margin: 4px 0;
+}
+
+.side {
+  padding: 8px 10px;
+  border-radius: 14px;
+  background: var(--panel);
+  border: 1.5px solid rgba(16, 185, 129, 0.4);
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.15);
+  transition: all 0.3s ease;
+}
+
+.side.magic-side {
+  text-align: right;
+  border-color: rgba(236, 72, 153, 0.4);
+  box-shadow: 0 4px 20px rgba(236, 72, 153, 0.15);
+}
+
+.side-header {
+  font-size: 10px;
+  font-weight: 900;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.magic-side .side-header {
+  justify-content: flex-end;
+}
+
+.emotion-tag {
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.08);
+  margin-top: 3px;
+  display: inline-block;
+  font-weight: 800;
+}
+
+.percent {
+  font-size: 26px;
+  font-weight: 1000;
+  line-height: 1.1;
+  font-family: monospace;
+}
+
+.dino-side .percent {
+  color: var(--dino-green);
+  text-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
+}
+
+.magic-side .percent {
+  color: var(--magic-pink);
+  text-shadow: 0 0 12px rgba(236, 72, 153, 0.5);
+}
+
+.vs-badge {
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--dino-gold);
+  background: rgba(0,0,0,0.8);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1.5px solid var(--dino-gold);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+}
+
+.arena-container {
+  border: 2px solid rgba(16, 185, 129, 0.35);
+  border-radius: 18px;
+  background: rgba(8, 14, 18, 0.95);
+  position: relative;
+  overflow: hidden;
+  margin: 4px 0;
+  box-shadow: inset 0 0 35px rgba(0, 0, 0, 0.95);
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 155px;
+}
+
+.directions {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 6px;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.status {
+  text-align: center;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1.5px solid rgba(16, 185, 129, 0.4);
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(16, 32, 28, 0.92), rgba(28, 16, 28, 0.92));
+  color: #fef08a;
+  font-size: 12px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 4px 0;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.15);
+}
+
+.control-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.moves {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.move {
+  height: 68px;
+  background: linear-gradient(145deg, #162228, #0d1519);
+  border: 1.5px solid rgba(16, 185, 129, 0.3);
+  border-radius: 14px;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  transition: transform 0.1s, border-color 0.2s;
+}
+
+.move .glyph {
+  font-size: 22px;
+}
+
+.move .label {
+  font-size: 10px;
+  font-weight: 900;
+  color: #a7f3d0;
+}
+
+.move.active {
+  border-color: var(--dino-green);
+  background: linear-gradient(145deg, #10382b, #091c15);
+  box-shadow: 0 0 18px rgba(16, 185, 129, 0.4);
+  transform: translateY(-2px);
+}
+
+.move:active {
+  transform: scale(0.95);
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 8px;
+}
+
+.action {
+  height: 46px;
+  border: 1.5px solid rgba(255,255,255,0.15);
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--text);
+  font-weight: 900;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.action.primary {
+  background: linear-gradient(135deg, #059669, #3b82f6);
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35);
+}
+
+.action:active {
+  transform: scale(0.97);
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: none;
+  place-items: center;
+  padding: 20px;
+  background: rgba(5, 8, 11, 0.95);
+  backdrop-filter: blur(12px);
+}
+
+.overlay.show {
+  display: grid;
+}
+
+.result-card {
+  width: min(380px, 100%);
+  padding: 30px 20px;
+  text-align: center;
+  border: 2px solid var(--dino-green);
+  border-radius: 22px;
+  background: linear-gradient(145deg, #12201d, #0a1114);
+  box-shadow: 0 0 50px rgba(16, 185, 129, 0.4);
+}
+</style>
+</head>
+<body>
+
+<main class="app" id="app">
+  <header>
+    <div class="eyebrow">TENNIS CLASH ENGINE</div>
+    <h1>網球模式：O型恐龍貓 vs A型萌貓娘</h1>
+  </header>
+
+  <section class="scores">
+    <div class="side dino-side">
+      <div class="side-header">🦖 O型恐龍貓 [0.95]</div>
+      <div class="percent" id="dinoScore">50%</div>
+      <div class="emotion-tag" id="dinoEmotion">⚡ 熱血恐龍扣殺</div>
+    </div>
+    <div class="vs-badge">VS</div>
+    <div class="side magic-side">
+      <div class="side-header">[0.92] A型萌貓娘 ✨</div>
+      <div class="percent" id="magicScore">50%</div>
+      <div class="emotion-tag" id="magicEmotion">🪄 魔法精密切球</div>
+    </div>
+  </section>
+
+  <div class="arena-container" id="arena">
+    <canvas id="canvas"></canvas>
+  </div>
+  <div class="directions"><span>◀ 恐龍暴龍壓制</span><span>魔法弧線控球 ▶</span></div>
+
+  <div class="status" id="status">
+    網球拉鋸戰開始！O型恐龍貓重擊爆發 vs A型萌貓娘精密魔球！
+  </div>
+
+  <div class="control-zone">
+    <section class="moves">
+      <button class="move active" data-move="topspin"><span class="glyph">🎾</span><span class="label">重擊旋風球</span></button>
+      <button class="move" data-move="slice"><span class="glyph">🪄</span><span class="label">魔法切球</span></button>
+      <button class="move" data-move="drop"><span class="glyph">✨</span><span class="label">靈動吊球</span></button>
+    </section>
+
+    <div class="actions">
+      <button class="action primary" id="fight">🎾 擊球！網球拉鋸回合！</button>
+      <button class="action" id="reset">↻ 重置</button>
+    </div>
+  </div>
+</main>
+
+<div class="overlay" id="overlay">
+  <div class="result-card">
+    <div style="font-size: 50px;" id="resultEmoji">🏆</div>
+    <h2 id="resultTitle" style="color: var(--dino-green);">O型恐龍貓大獲全勝！</h2>
+    <p id="resultText" style="color: var(--muted); font-size: 13px; line-height: 1.5; margin-bottom: 20px;">「嘎嗷～！」憑藉 O 型血的熱血霸氣與重砲扣殺，恐龍貓拿下了網球公開賽冠軍！</p>
+    <button class="action primary" id="again" style="width: 100%; height: 48px;">再開一局網球大戰 ↻</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  // Web Audio Context Synthesis
+  let audioCtx = null;
+  function initAudio() {
+    if (!audioCtx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AC();
+    }
+    if (audioCtx.state === "suspended") audioCtx.resume();
+  }
+
+  // Tennis Pop / Pop-Hit Sound
+  function playTennisPop(isDino = true, isCrit = false, isUltimate = false) {
+    initAudio();
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+    
+    // Racket impact
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    
+    osc.type = isDino ? "sine" : "triangle";
+    const startFreq = isUltimate ? (isDino ? 900 : 1200) : (isCrit ? 700 : (isDino ? 450 : 550));
+    const endFreq = isDino ? 120 : 180;
+    
+    osc.frequency.setValueAtTime(startFreq, now);
+    osc.frequency.exponentialRampToValueAtTime(endFreq, now + (isUltimate ? 0.35 : 0.18));
+    
+    gain.gain.setValueAtTime(isUltimate ? 0.5 : 0.3, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + (isUltimate ? 0.35 : 0.18));
+    
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    
+    osc.start(now);
+    osc.stop(now + (isUltimate ? 0.35 : 0.18));
+
+    // Magic/Dino Swoosh tail
+    if (isCrit || isUltimate) {
+      const subOsc = audioCtx.createOscillator();
+      const subGain = audioCtx.createGain();
+      subOsc.type = "sawtooth";
+      subOsc.frequency.setValueAtTime(isDino ? 150 : 800, now);
+      subOsc.frequency.exponentialRampToValueAtTime(isDino ? 40 : 1200, now + 0.3);
+      
+      subGain.gain.setValueAtTime(0.2, now);
+      subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+      
+      subOsc.connect(subGain);
+      subGain.connect(audioCtx.destination);
+      
+      subOsc.start(now);
+      subOsc.stop(now + 0.3);
+    }
+  }
+
+  const $ = id => document.getElementById(id);
+  const canvas = $("canvas");
+  const ctx = canvas.getContext("2d");
+  const buttons = [...document.querySelectorAll(".move")];
+
+  const MOVES = ["topspin", "slice", "drop"];
+  // Topspin beats Slice, Slice beats Drop, Drop beats Topspin
+  const BEATS = { topspin: "slice", slice: "drop", drop: "topspin" };
+
+  const state = {
+    dino: 50,
+    magic: 50,
+    selected: "topspin",
+    round: 0,
+    ended: false,
+    ballPos: 0.5,
+    ballBounceY: 0,
+    particles: [],
+    flash: 0
+  };
+
+  let W = 400, H = 155, DPR = 1, animId = 0;
+
+  function resizeCanvas() {
+    const rect = canvas.getBoundingClientRect();
+    W = Math.max(100, rect.width);
+    H = Math.max(80, rect.height);
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(W * DPR);
+    canvas.height = Math.round(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+
+  function chooseMove(move) {
+    state.selected = move;
+    buttons.forEach(btn => btn.classList.toggle("active", btn.dataset.move === move));
+  }
+
+  function updateUI() {
+    $("dinoScore").textContent = Math.round(state.dino) + "%";
+    $("magicScore").textContent = Math.round(state.magic) + "%";
+
+    $("dinoEmotion").textContent = state.dino > 60 ? "🦖 龍魂咆哮連擊" : (state.dino < 30 ? "😿 被魔法切球逼近" : "⚡ 熱血恐龍扣殺");
+    $("magicEmotion").textContent = state.magic > 60 ? "🪄 結界極限控球" : "✨ 觀察恐龍球路";
+
+    if (state.dino > 60) {
+      document.body.style.background = "radial-gradient(circle at 20% 30%, #0d281e 0%, #070a0d 70%)";
+    } else if (state.magic > 60) {
+      document.body.style.background = "radial-gradient(circle at 80% 30%, #2a0e28 0%, #070a0d 70%)";
+    } else {
+      document.body.style.background = "radial-gradient(circle at 50% 20%, #0f1d1a 0%, #070a0d 70%)";
+    }
+  }
+
+  function spawnParticles(x, y, color, count = 20) {
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 1 + Math.random() * 5;
+      state.particles.push({
+        x, y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 25 + Math.random() * 20,
+        maxLife: 45,
+        size: 2 + Math.random() * 3,
+        color
+      });
+    }
+  }
+
+  function playRound() {
+    if (state.ended) return;
+    state.round++;
+
+    const magicMove = MOVES[Math.floor(Math.random() * MOVES.length)];
+    const dinoMove = state.selected;
+    const status = $("status");
+
+    const randCrit = Math.random();
+    let critType = "normal";
+    if (randCrit < 0.15) critType = "ultimate";
+    else if (randCrit < 0.42) critType = "critical";
+
+    if (dinoMove === magicMove) {
+      status.textContent = `第 ${state.round} 回合｜網前對抽，雙方來回精彩拉鋸！平分！`;
+      playTennisPop(true, false, false);
+      spawnParticles(W * state.ballPos, H / 2, "#ffffff", 15);
+    } else if (BEATS[dinoMove] === magicMove) {
+      // Dino Cat Wins (0.95 Power: Base 7.5%, Big burst on Crits)
+      let baseGain = 7.5;
+      if (critType === "critical") baseGain = 16;
+      if (critType === "ultimate") baseGain = 26;
+
+      state.dino = Math.min(100, state.dino + baseGain);
+      state.magic = 100 - state.dino;
+
+      if (critType === "ultimate") {
+        status.textContent = `🦖 第 ${state.round} 回合｜【必殺·恐龍咆哮重砲扣殺】！！O型霸氣推進 +${baseGain}%！`;
+        playTennisPop(true, true, true);
+      } else if (critType === "critical") {
+        status.textContent = `💥 第 ${state.round} 回合｜【會心一擊·抽球】！極速正拍破網 +${baseGain}%！`;
+        playTennisPop(true, true, false);
+      } else {
+        status.textContent = `第 ${state.round} 回合｜O型恐龍貓重擊得分！推進 +${baseGain}%！`;
+        playTennisPop(true, false, false);
+      }
+      spawnParticles(W * state.ballPos, H / 2, "#10b981", critType === "ultimate" ? 45 : 22);
+    } else {
+      // Magic Cat Girl Wins (0.92 Precision: Base 8%, Magic Arc Precision)
+      let baseGain = 8;
+      if (critType === "critical") baseGain = 16.5;
+      if (critType === "ultimate") baseGain = 26.5;
+
+      state.magic = Math.min(100, state.magic + baseGain);
+      state.dino = 100 - state.magic;
+
+      if (critType === "ultimate") {
+        status.textContent = `✨ 第 ${state.round} 回合｜【必殺·魔法結界星辰弧線】！！A型精密控球 +${baseGain}%！`;
+        playTennisPop(false, true, true);
+      } else if (critType === "critical") {
+        status.textContent = `🪄 第 ${state.round} 回合｜【會心魔法切球】！壓線旋轉刁鑽死角 +${baseGain}%！`;
+        playTennisPop(false, true, false);
+      } else {
+        status.textContent = `第 ${state.round} 回合｜A型萌貓娘精密弧線迴擊！推進 +${baseGain}%！`;
+        playTennisPop(false, false, false);
+      }
+      spawnParticles(W * state.ballPos, H / 2, "#ec4899", critType === "ultimate" ? 45 : 22);
+    }
+
+    state.flash = critType === "ultimate" ? 2.5 : 1;
+    updateUI();
+
+    if (state.dino >= 100 || state.magic >= 100) {
+      finishMatch(state.dino >= 100 ? "dino" : "magic");
+    }
+  }
+
+  function finishMatch(winner) {
+    state.ended = true;
+    const dinoWon = winner === "dino";
+
+    $("resultEmoji").textContent = dinoWon ? "🏆🦖" : "🏆✨";
+    $("resultTitle").textContent = dinoWon ? "O型恐龍貓榮登網球霸主！" : "A型萌貓娘奪得魔法滿貫！";
+    $("resultTitle").style.color = dinoWon ? "var(--dino-green)" : "var(--magic-pink)";
+    $("resultText").textContent = dinoWon
+      ? "「嘎嗷～！」憑藉 O 型血的熱血霸氣與重砲扣殺，恐龍貓拿下了網球公開賽冠軍！"
+      : "「喵～☆」憑藉 A 型血的縝密思考與魔法切球，萌貓娘成功拿下大滿貫！";
+
+    $("status").textContent = dinoWon ? "【終局】恐龍貓轟出完美Ace球勝出！" : "【終局】萌貓娘極致弧線絕殺！";
+    $("overlay").classList.add("show");
+  }
+
+  function resetGame() {
+    state.dino = 50;
+    state.magic = 50;
+    state.round = 0;
+    state.ended = false;
+    state.ballPos = 0.5;
+    state.particles = [];
+    state.flash = 0;
+
+    $("status").textContent = "網球拉鋸戰開始！O型恐龍貓重擊爆發 vs A型萌貓娘精密魔球！";
+    $("overlay").classList.remove("show");
+    chooseMove("topspin");
+    updateUI();
+  }
+
+  function getSPoint(t) {
+    return {
+      x: 24 + t * (W - 48),
+      y: H / 2 + Math.sin(t * Math.PI * 2) * (H * 0.24)
+    };
+  }
+
+  function renderFrame() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Render Court Baselines & Net lines
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(20, 15, W - 40, H - 30);
+    ctx.beginPath();
+    ctx.moveTo(W / 2, 15);
+    ctx.lineTo(W / 2, H - 15);
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+    ctx.stroke();
+
+    // S-curve Tennis Track Track Base
+    ctx.beginPath();
+    for (let i = 0; i <= 80; i++) {
+      const t = i / 80;
+      const p = getSPoint(t);
+      if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
+    }
+    ctx.lineCap = "round";
+    ctx.lineWidth = 12;
+    ctx.strokeStyle = "#111a20";
+    ctx.stroke();
+
+    // Active Court Tug-of-war Lines
+    const split = state.dino / 100;
+    for (let side = 0; side < 2; side++) {
+      ctx.beginPath();
+      const from = side === 0 ? 0 : split;
+      const to = side === 0 ? split : 1;
+      for (let i = 0; i <= 40; i++) {
+        const t = from + (to - from) * (i / 40);
+        const p = getSPoint(t);
+        if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
+      }
+      ctx.lineWidth = 5;
+      ctx.strokeStyle = side === 0 ? "#10b981" : "#ec4899";
+      ctx.shadowColor = side === 0 ? "#10b981" : "#ec4899";
+      ctx.shadowBlur = 12;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+
+    // Floating Dynamic Glyphs 【龍】vs【魔】
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = `1000 ${20 + state.dino * 0.3}px system-ui`;
+    ctx.fillStyle = `rgba(16, 185, 129, ${0.25 + state.dino / 150})`;
+    ctx.fillText("龍", W * 0.18, H * 0.32);
+
+    ctx.font = `1000 ${20 + state.magic * 0.3}px system-ui`;
+    ctx.fillStyle = `rgba(236, 72, 153, ${0.25 + state.magic / 150})`;
+    ctx.fillText("魔", W * 0.82, H * 0.68);
+
+    // Ball Animation & Bounce
+    const targetBall = 0.12 + (state.dino / 100) * 0.76;
+    state.ballPos += (targetBall - state.ballPos) * 0.15;
+    const pt = getSPoint(state.ballPos);
+
+    // Animated Tennis Ball Bounce Height
+    state.ballBounceY = Math.abs(Math.sin(Date.now() * 0.008)) * 6;
+
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y - state.ballBounceY, 11 + state.flash * 4, 0, Math.PI * 2);
+    ctx.fillStyle = "#ccff00"; // Classic bright tennis neon yellow
+    ctx.fill();
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Render Hit Particles
+    state.particles = state.particles.filter(p => p.life > 0);
+    for (const p of state.particles) {
+      ctx.globalAlpha = p.life / p.maxLife;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life--;
+    }
+    ctx.globalAlpha = 1;
+    state.flash *= 0.82;
+
+    animId = requestAnimationFrame(renderFrame);
+  }
+
+  buttons.forEach(btn => btn.addEventListener("click", () => chooseMove(btn.dataset.move)));
+  $("fight").addEventListener("click", playRound);
+  $("reset").addEventListener("click", resetGame);
+  $("again").addEventListener("click", resetGame);
+
+  window.addEventListener("resize", resizeCanvas, { passive: true });
+  resizeCanvas();
+  updateUI();
+  if (!animId) animId = requestAnimationFrame(renderFrame);
+})();
+</script>
+</body>
+</html>
